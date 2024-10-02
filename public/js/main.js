@@ -382,11 +382,11 @@ const PeerConnection = (function () {
         { urls: "stun:stun2.l.google.com:19302" },
         { urls: "stun:stun3.l.google.com:19302" },
         { urls: "stun:stun4.l.google.com:19302" },
-        {
-          urls: "turn:numb.viagenie.ca", // Public TURN server
-          credential: "webrtc", // Public credential
-          username: "sylvain.poitras@gmail.com",
-        },
+        // {
+        //   urls: "turn:numb.viagenie.ca", // Public TURN server
+        //   credential: "webrtc", // Public credential
+        //   username: "sylvain.poitras@gmail.com",
+        // },
       ],
     };
     peerConnection = new RTCPeerConnection(config);
