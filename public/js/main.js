@@ -567,5 +567,61 @@ const startMyVideo = async () => {
     console.error("Error accessing media devices:", error);
   }
 };
+document.getElementById("btn-front").addEventListener("click", () => {
+  handleDirection("front");
+});
+
+document.getElementById("btn-back").addEventListener("click", () => {
+  handleDirection("back");
+});
+
+document.getElementById("btn-left").addEventListener("click", () => {
+  handleDirection("left");
+});
+
+document.getElementById("btn-right").addEventListener("click", () => {
+  handleDirection("right");
+});
+
+function handleDirection(direction) {
+  fetch(`/api/move/${direction}`, {
+    method: "POST",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(`Action: ${direction}`, data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}
+document.getElementById("btn-front").addEventListener("click", () => {
+  handleDirection("front");
+});
+
+document.getElementById("btn-back").addEventListener("click", () => {
+  handleDirection("back");
+});
+
+document.getElementById("btn-left").addEventListener("click", () => {
+  handleDirection("left");
+});
+
+document.getElementById("btn-right").addEventListener("click", () => {
+  handleDirection("right");
+});
+
+function handleDirection(direction) {
+  fetch(`/api/move/${direction}`, {
+    method: "POST",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(`Action: ${direction}`, data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}
 
 startMyVideo();
