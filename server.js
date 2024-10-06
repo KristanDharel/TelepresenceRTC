@@ -322,7 +322,13 @@ const allusers = {};
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Enable CORS for all origins (you can restrict this later)
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // Replace with your client's domain
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 // Exposing public directory to outside world
 app.use(express.static("public"));
