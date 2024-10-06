@@ -257,7 +257,7 @@ io.on("connection", (socket) => {
 let movementData = { direction: null };
 
 // Movement API routes
-app.get("/api/move/:direction", (req, res) => {
+app.post("/api/move/:direction", (req, res) => {
   const { direction } = req.params;
   let message = "";
   console.log("GET request received with direction: ", direction); // Add this log

@@ -613,7 +613,7 @@ document.getElementById("btn-right").addEventListener("click", () => {
 
 function handleDirection(direction) {
   fetch(`/api/move/${direction}`, {
-    method: "GET",
+    method: "POST",
   })
     .then((response) => response.json())
     .then((data) => {
