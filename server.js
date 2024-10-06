@@ -264,7 +264,7 @@ app.post("/api/move/:direction", (req, res) => {
 
   console.log(`Move: ${direction}`);
 
-  // Logic to handle the movement based on the direction
+  // Logic to handle the movedment based on the direction
   switch (direction) {
     case "front":
       message = "Moving forward";

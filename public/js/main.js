@@ -431,11 +431,6 @@ const endCallBtn = document.getElementById("end-call-btn");
 const socket = io();
 let localStream;
 let caller = [];
-let movement = {
-  front: false,
-  left: false,
-  right: false,
-};
 
 // Single Method for peer connection
 const PeerConnection = (function () {
@@ -444,24 +439,22 @@ const PeerConnection = (function () {
   const createPeerConnection = () => {
     const config = {
       iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
         {
-          urls: "stun:stun.l.google.com:19302", // STUN server
-        },
-        {
-          urls: "turn:277cdc3df423272ccb9603bf", // TURN server (provided by you)
-          username: "277cdc3df423272ccb9603bf", // Username for TURN server
-          credential: "5lUr+a08TbwkUoAz", // Password for TURN server
+          url: "turn:numb.viagenie.ca",
+          credential: "muazkh",
+          username: "webrtc@live.com",
         },
       ],
     };
     peerConnection = new RTCPeerConnection(config);
 
-    // add local stream to peer connection
+    // Add local stream to peer connection
     localStream.getTracks().forEach((track) => {
       peerConnection.addTrack(track, localStream);
     });
 
-    // listen to remote stream and add to peer connection
+    // Listen to remote stream and add to peer connection
     peerConnection.ontrack = function (event) {
       remoteVideo.srcObject = event.streams[0];
       const remoteAudio = new Audio();
@@ -469,7 +462,7 @@ const PeerConnection = (function () {
       remoteAudio.play();
     };
 
-    // listen for ice candidate
+    // Listen for ice candidate
     peerConnection.onicecandidate = function (event) {
       if (event.candidate) {
         socket.emit("icecandidate", event.candidate);
@@ -489,7 +482,7 @@ const PeerConnection = (function () {
   };
 })();
 
-// handle browser events
+// Handle browser events
 createUserBtn.addEventListener("click", (e) => {
   if (username.value !== "") {
     const usernameContainer = document.querySelector(".username-input");
@@ -502,7 +495,7 @@ endCallBtn.addEventListener("click", (e) => {
   socket.emit("call-ended", caller);
 });
 
-// handle socket events
+// Handle socket events
 socket.on("joined", (allusers) => {
   const createUsersHtml = () => {
     allusersHtml.innerHTML = "";
@@ -562,7 +555,7 @@ socket.on("call-ended", (caller) => {
   endCall();
 });
 
-// start call method
+// Start call method
 const startCall = async (user) => {
   let pc = PeerConnection.getInstance();
   if (pc.signalingState === "closed") {
@@ -579,7 +572,7 @@ const startCall = async (user) => {
   });
 };
 
-// end call method
+// End call method
 const endCall = () => {
   const pc = PeerConnection.getInstance();
   if (pc) {
@@ -604,61 +597,70 @@ const startMyVideo = async () => {
 };
 
 // Movement buttons and keyboard event handlers
-document.getElementById("btn-front").addEventListener("click", () => {
-  handleDirection("front");
+let activeDirection = null;
+
+// Mouse control: Start moving on button press
+document.getElementById("btn-front").addEventListener("mousedown", () => {
+  activeDirection = "front";
+  triggerMovement(activeDirection); // Trigger the movement immediately on hold
 });
 
-document.getElementById("btn-back").addEventListener("click", () => {
-  handleDirection("back");
+document.getElementById("btn-back").addEventListener("mousedown", () => {
+  activeDirection = "back";
+  triggerMovement(activeDirection);
 });
 
-document.getElementById("btn-left").addEventListener("click", () => {
-  handleDirection("left");
+document.getElementById("btn-left").addEventListener("mousedown", () => {
+  activeDirection = "left";
+  triggerMovement(activeDirection);
 });
 
-document.getElementById("btn-right").addEventListener("click", () => {
-  handleDirection("right");
+document.getElementById("btn-right").addEventListener("mousedown", () => {
+  activeDirection = "right";
+  triggerMovement(activeDirection);
 });
 
-document.getElementById("btn-stop").addEventListener("click", () => {
-  handleDirection("stop");
+// Stop movement on mouse button release
+document.addEventListener("mouseup", () => {
+  if (activeDirection) {
+    triggerMovement("stop"); // Trigger the stop action when the button is released
+    activeDirection = null; // Reset active direction
+  }
 });
 
+// Keyboard event handlers (start moving on key press, stop on key release)
 document.addEventListener("keydown", (event) => {
   switch (event.key.toLowerCase()) {
     case "w":
-      if (!movement.front) {
-        movement.front = true;
-        handleDirection("front");
+      if (activeDirection !== "front") {
+        activeDirection = "front";
+        triggerMovement(activeDirection);
       }
-      movement.left = movement.right = false;
       break;
     case "a":
-      if (!movement.left) {
-        movement.left = true;
-        handleDirection("left");
+      if (activeDirection !== "left") {
+        activeDirection = "left";
+        triggerMovement(activeDirection);
       }
-      movement.front = movement.right = false;
       break;
     case "d":
-      if (!movement.right) {
-        movement.right = true;
-        handleDirection("right");
+      if (activeDirection !== "right") {
+        activeDirection = "right";
+        triggerMovement(activeDirection);
       }
-      movement.front = movement.left = false;
       break;
   }
 });
 
 document.addEventListener("keyup", (event) => {
   if (["w", "a", "d"].includes(event.key.toLowerCase())) {
-    movement = { front: false, left: false, right: false };
-    handleDirection("stop");
+    triggerMovement("stop"); // Trigger the stop action on key release
+    activeDirection = null; // Reset active direction
   }
 });
 
 // Function to handle directions
-function handleDirection(direction) {
+function triggerMovement(direction) {
   fetch(`/api/move/${direction}`, {
     method: "POST",
   })
@@ -671,4 +673,5 @@ function handleDirection(direction) {
     });
 }
 
+// Start the video streaming
 startMyVideo();
