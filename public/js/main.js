@@ -582,6 +582,9 @@ document.getElementById("btn-left").addEventListener("click", () => {
 document.getElementById("btn-right").addEventListener("click", () => {
   handleDirection("right");
 });
+document.getElementById("btn-stop").addEventListener("click", () => {
+  handleDirection("stop");
+});
 
 function handleDirection(direction) {
   fetch(`/api/move/${direction}`, {
@@ -609,6 +612,9 @@ document.getElementById("btn-left").addEventListener("click", () => {
 
 document.getElementById("btn-right").addEventListener("click", () => {
   handleDirection("right");
+});
+document.getElementById("btn-stop").addEventListener("click", () => {
+  handleDirection("stop");
 });
 
 function handleDirection(direction) {
