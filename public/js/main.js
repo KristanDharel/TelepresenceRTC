@@ -431,6 +431,7 @@ const endCallBtn = document.getElementById("end-call-btn");
 const socket = io();
 let localStream;
 let caller = [];
+//ICE server
 
 // Single Method for peer connection
 const PeerConnection = (function () {
@@ -438,12 +439,37 @@ const PeerConnection = (function () {
 
   const createPeerConnection = () => {
     const config = {
+      // iceServers: [
+      //   { urls: "stun:stun.l.google.com:19302" },
+      //   {
+      //     url: "turn:numb.viagenie.ca",
+      //     credential: "muazkh",
+      //     username: "webrtc@live.com",
+      //   },
+      // ],
       iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
         {
-          url: "turn:numb.viagenie.ca",
-          credential: "muazkh",
-          username: "webrtc@live.com",
+          urls: "stun:stun.relay.metered.ca:80",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80",
+          username: "683476fd9a2b31ef5b7643c3",
+          credential: "LxaSTPlWMuANe/T1",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80?transport=tcp",
+          username: "683476fd9a2b31ef5b7643c3",
+          credential: "LxaSTPlWMuANe/T1",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:443",
+          username: "683476fd9a2b31ef5b7643c3",
+          credential: "LxaSTPlWMuANe/T1",
+        },
+        {
+          urls: "turns:global.relay.metered.ca:443?transport=tcp",
+          username: "683476fd9a2b31ef5b7643c3",
+          credential: "LxaSTPlWMuANe/T1",
         },
       ],
     };
