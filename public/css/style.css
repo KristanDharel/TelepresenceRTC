@@ -82,7 +82,7 @@ ul li {
 	justify-content: center;
 	align-items: center;
 	font-size: 16px; /* Button text size */
-	margin: 1px 2px 300px 0px;
+	margin: 1px 2px 100px 0px;
 	cursor: pointer;
 	border-radius: 8px; /* Rounded corners */
 	transition: background-color 0.3s ease; /* Smooth background color transition */
