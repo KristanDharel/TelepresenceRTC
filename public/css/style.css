@@ -183,3 +183,31 @@ ul li {
 	cursor: pointer;
 	text-transform: uppercase;
 }
+/* wdadad */
+/* styles.css or in the relevant CSS file */
+.bt {
+	display: flex;
+	gap: 10px; /* Space between buttons */
+	margin-top: 10px;
+  }
+  
+  .bt button {
+	background-color: #f0f0f0; /* Light grey background */
+	border: none;
+	border-radius: 50%; /* Make the button round */
+	padding: 8px; /* Inner padding for spacing */
+	width: 40px; /* Set fixed width */
+	height: 40px; /* Set fixed height */
+	cursor: pointer;
+	transition: background-color 0.3s ease; /* Smooth background color transition */
+  }
+  
+  .bt button:hover {
+	background-color: #e0e0e0; /* Slightly darker background on hover */
+  }
+  
+  .bt button img {
+	width: 20px; /* Reduce image width */
+	height: 20px; /* Reduce image height */
+  }
+  
