@@ -290,19 +290,19 @@
 // // Start the video streaming
 // startMyVideo();
 
-// Variables for stream and video elements
+//og self modify
+
 // const createUserBtn = document.getElementById("create-user");
 // const username = document.getElementById("username");
 // const allusersHtml = document.getElementById("allusers");
 // const localVideo = document.getElementById("localVideo");
 // const remoteVideo = document.getElementById("remoteVideo");
 // const endCallBtn = document.getElementById("end-call-btn");
-// const micButton = document.getElementById("mic-call-btn");
-// const camButton = document.getElementById("vid-call-btn");
+// const toggleVideoBtn = document.getElementById("vid-call-btn");
+// const toggleAudioBtn = document.getElementById("mic-call-btn");
 // const socket = io();
 // let localStream;
 // let caller = [];
-// let activeDirection = null;
 
 // // ICE server configuration
 // const PeerConnection = (function () {
@@ -369,7 +369,7 @@
 // })();
 
 // // Handle browser events
-// createUserBtn.addEventListener("click", () => {
+// createUserBtn.addEventListener("click", (e) => {
 //   if (username.value !== "") {
 //     const usernameContainer = document.querySelector(".username-input");
 //     socket.emit("join-user", username.value);
@@ -377,48 +377,38 @@
 //   }
 // });
 
-// endCallBtn.addEventListener("click", () => {
+// endCallBtn.addEventListener("click", (e) => {
 //   socket.emit("call-ended", caller);
-//   endCall();
 // });
 
-// // Toggle camera
-// camButton.addEventListener("click", () => {
-//   if (localStream) {
-//     const videoTrack = localStream.getVideoTracks()[0];
-//     videoTrack.enabled = !videoTrack.enabled;
-//     camButton.classList.toggle("active", videoTrack.enabled);
-//   }
-// });
-
-// // Toggle microphone
-// micButton.addEventListener("click", () => {
-//   if (localStream) {
-//     const audioTrack = localStream.getAudioTracks()[0];
-//     audioTrack.enabled = !audioTrack.enabled;
-//     micButton.classList.toggle("active", audioTrack.enabled);
-//   }
-// });
-
-// // Socket event handlers
+// // Handle socket events
 // socket.on("joined", (allusers) => {
-//   allusersHtml.innerHTML = "";
-//   for (const user in allusers) {
-//     const li = document.createElement("li");
-//     li.textContent = `${user} ${user === username.value ? "(You)" : ""}`;
+//   const createUsersHtml = () => {
+//     allusersHtml.innerHTML = "";
 
-//     if (user !== username.value) {
-//       const button = document.createElement("button");
-//       button.classList.add("call-btn");
-//       button.addEventListener("click", () => startCall(user));
-//       const img = document.createElement("img");
-//       img.src = "/images/phone.png";
-//       img.width = 20;
-//       button.appendChild(img);
-//       li.appendChild(button);
+//     for (const user in allusers) {
+//       const li = document.createElement("li");
+//       li.textContent = `${user} ${user === username.value ? "(You)" : ""}`;
+
+//       if (user !== username.value) {
+//         const button = document.createElement("button");
+//         button.classList.add("call-btn");
+//         button.addEventListener("click", (e) => {
+//           startCall(user);
+//         });
+//         const img = document.createElement("img");
+//         img.setAttribute("src", "/images/phone.png");
+//         img.setAttribute("width", 20);
+
+//         button.appendChild(img);
+//         li.appendChild(button);
+//       }
+
+//       allusersHtml.appendChild(li);
 //     }
-//     allusersHtml.appendChild(li);
-//   }
+//   };
+
+//   createUsersHtml();
 // });
 
 // socket.on("offer", async ({ from, to, offer }) => {
@@ -434,6 +424,7 @@
 //   const pc = PeerConnection.getInstance();
 //   await pc.setRemoteDescription(answer);
 //   endCallBtn.style.display = "block";
+//   socket.emit("end-call", { from, to });
 //   caller = [from, to];
 // });
 
@@ -442,13 +433,22 @@
 //   await pc.addIceCandidate(new RTCIceCandidate(candidate));
 // });
 
-// socket.on("call-ended", () => {
+// socket.on("end-call", ({ from, to }) => {
+//   endCallBtn.style.display = "block";
+// });
+
+// socket.on("call-ended", (caller) => {
 //   endCall();
 // });
 
-// // Start the call
+// // Start call method
 // const startCall = async (user) => {
-//   const pc = PeerConnection.getInstance();
+//   let pc = PeerConnection.getInstance();
+//   if (pc.signalingState === "closed") {
+//     peerConnection = null;
+//     pc = PeerConnection.getInstance();
+//   }
+
 //   const offer = await pc.createOffer();
 //   await pc.setLocalDescription(offer);
 //   socket.emit("offer", {
@@ -458,62 +458,135 @@
 //   });
 // };
 
-// // End the call
+// // End call method
 // const endCall = () => {
 //   const pc = PeerConnection.getInstance();
 //   if (pc) {
 //     pc.close();
+//     peerConnection = null;
 //     endCallBtn.style.display = "none";
 //   }
-//   localVideo.srcObject = null;
-//   remoteVideo.srcObject = null;
 // };
 
-// // Initialize local video stream
+// // Initialize video streaming
 // const startMyVideo = async () => {
 //   try {
-//     localStream = await navigator.mediaDevices.getUserMedia({
-//       video: true,
+//     const stream = await navigator.mediaDevices.getUserMedia({
 //       audio: true,
+//       video: true,
 //     });
-//     localVideo.srcObject = localStream;
+//     localStream = stream;
+//     localVideo.srcObject = stream;
 //   } catch (error) {
 //     console.error("Error accessing media devices:", error);
 //   }
 // };
 
-// // Movement control (button and keyboard)
-// const triggerMovement = (direction) => {
-//   fetch(`/api/move/${direction}`, { method: "POST" })
-//     .then((response) => response.json())
-//     .then((data) => console.log(`Action: ${direction}`, data))
-//     .catch((error) => console.error("Error:", error));
-// };
+// // Toggle video and audio functions
+// let videoEnabled = true;
+// let audioEnabled = true;
+// let vidON = "/images/video-camera.png";
+// let videoOFF = "/images/no-video.png";
+// toggleVideoBtn.addEventListener("click", () => {
+//   videoEnabled = !videoEnabled;
+//   localStream.getVideoTracks().forEach((track) => {
+//     track.enabled = videoEnabled;
+//   });
+//   // toggleVideoBtn.innerHTML = videoEnabled
+//   //   ? "Turn Off Video"
+//   //   : "Turn On Video";
+//   toggleVideoBtn.innerHTML = `<img src="${
+//     videoEnabled ? vidON : videoOFF
+//   }" alt="${videoEnabled ? "Turn Off Video" : "Turn On Video"}">`;
+// });
+// let micMute = "/images/mute.png";
+// let micOn = "/images/record.png";
+// toggleAudioBtn.addEventListener("click", () => {
+//   audioEnabled = !audioEnabled;
+//   localStream.getAudioTracks().forEach((track) => {
+//     track.enabled = audioEnabled;
+//   });
+//   toggleAudioBtn.innerHTML = `<img src="${
+//     audioEnabled ? micOn : micMute
+//   }" alt="${audioEnabled ? "Mute Audio" : "Unmute Audio"}">`;
+// });
 
-// document
-//   .getElementById("btn-front")
-//   .addEventListener("mousedown", () => triggerMovement("front"));
-// document
-//   .getElementById("btn-back")
-//   .addEventListener("mousedown", () => triggerMovement("back"));
-// document
-//   .getElementById("btn-left")
-//   .addEventListener("mousedown", () => triggerMovement("left"));
-// document
-//   .getElementById("btn-right")
-//   .addEventListener("mousedown", () => triggerMovement("right"));
+// // Movement buttons and keyboard event handlers
+// let activeDirection = null;
 
-// document.addEventListener("mouseup", () => triggerMovement("stop"));
+// // Mouse control: Start moving on button press
+// document.getElementById("btn-front").addEventListener("mousedown", () => {
+//   activeDirection = "front";
+//   triggerMovement(activeDirection); // Trigger the movement immediately on hold
+// });
 
+// document.getElementById("btn-back").addEventListener("mousedown", () => {
+//   activeDirection = "back";
+//   triggerMovement(activeDirection);
+// });
+
+// document.getElementById("btn-left").addEventListener("mousedown", () => {
+//   activeDirection = "left";
+//   triggerMovement(activeDirection);
+// });
+
+// document.getElementById("btn-right").addEventListener("mousedown", () => {
+//   activeDirection = "right";
+//   triggerMovement(activeDirection);
+// });
+
+// // Stop movement on mouse button release
+// document.addEventListener("mouseup", () => {
+//   if (activeDirection) {
+//     triggerMovement("stop"); // Trigger the stop action when the button is released
+//     activeDirection = null; // Reset active direction
+//   }
+// });
+
+// // Keyboard event handlers (start moving on key press, stop on key release)
 // document.addEventListener("keydown", (event) => {
-//   if (event.key === "w") triggerMovement("front");
-//   if (event.key === "a") triggerMovement("left");
-//   if (event.key === "d") triggerMovement("right");
+//   switch (event.key.toLowerCase()) {
+//     case "w":
+//       if (activeDirection !== "front") {
+//         activeDirection = "front";
+//         triggerMovement(activeDirection);
+//       }
+//       break;
+//     case "a":
+//       if (activeDirection !== "left") {
+//         activeDirection = "left";
+//         triggerMovement(activeDirection);
+//       }
+//       break;
+//     case "d":
+//       if (activeDirection !== "right") {
+//         activeDirection = "right";
+//         triggerMovement(activeDirection);
+//       }
+//       break;
+//   }
 // });
 
 // document.addEventListener("keyup", (event) => {
-//   if (["w", "a", "d"].includes(event.key)) triggerMovement("stop");
+//   if (["w", "a", "d"].includes(event.key.toLowerCase())) {
+//     triggerMovement("stop"); // Trigger the stop action on key release
+//     activeDirection = null; // Reset active direction
+//   }
 // });
+
+// // Function to handle directions
+// function triggerMovement(direction) {
+//   fetch(`/api/move/${direction}`, {
+//     method: "POST",
+//   })
+//     .then((response) => response.json())
+//     .then((data) => {
+//       console.log(`Action: ${direction}`, data);
+//     })
+//     .catch((error) => {
+//       console.error("Error:", error);
+//     });
+// }
 
 // // Start the video streaming
 // startMyVideo();
@@ -524,12 +597,11 @@ const allusersHtml = document.getElementById("allusers");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const endCallBtn = document.getElementById("end-call-btn");
-const micButton = document.getElementById("mic-call-btn");
-const camButton = document.getElementById("vid-call-btn");
+const toggleVideoBtn = document.getElementById("vid-call-btn");
+const toggleAudioBtn = document.getElementById("mic-call-btn");
 const socket = io();
 let localStream;
 let caller = [];
-let activeDirection = null;
 
 // ICE server configuration
 const PeerConnection = (function () {
@@ -573,9 +645,12 @@ const PeerConnection = (function () {
     // Listen to remote stream and add to peer connection
     peerConnection.ontrack = function (event) {
       remoteVideo.srcObject = event.streams[0];
+      const remoteAudio = new Audio();
+      remoteAudio.srcObject = event.streams[0];
+      remoteAudio.play();
     };
 
-    // Listen for ICE candidate
+    // Listen for ice candidate
     peerConnection.onicecandidate = function (event) {
       if (event.candidate) {
         socket.emit("icecandidate", event.candidate);
@@ -592,17 +667,11 @@ const PeerConnection = (function () {
       }
       return peerConnection;
     },
-    reset: () => {
-      if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
-      }
-    },
   };
 })();
 
 // Handle browser events
-createUserBtn.addEventListener("click", () => {
+createUserBtn.addEventListener("click", (e) => {
   if (username.value !== "") {
     const usernameContainer = document.querySelector(".username-input");
     socket.emit("join-user", username.value);
@@ -610,48 +679,38 @@ createUserBtn.addEventListener("click", () => {
   }
 });
 
-endCallBtn.addEventListener("click", () => {
+endCallBtn.addEventListener("click", (e) => {
   socket.emit("call-ended", caller);
-  endCall();
 });
 
-// Toggle camera
-camButton.addEventListener("click", () => {
-  if (localStream) {
-    const videoTrack = localStream.getVideoTracks()[0];
-    videoTrack.enabled = !videoTrack.enabled;
-    camButton.classList.toggle("active", videoTrack.enabled);
-  }
-});
-
-// Toggle microphone
-micButton.addEventListener("click", () => {
-  if (localStream) {
-    const audioTrack = localStream.getAudioTracks()[0];
-    audioTrack.enabled = !audioTrack.enabled;
-    micButton.classList.toggle("active", audioTrack.enabled);
-  }
-});
-
-// Socket event handlers
+// Handle socket events
 socket.on("joined", (allusers) => {
-  allusersHtml.innerHTML = "";
-  for (const user in allusers) {
-    const li = document.createElement("li");
-    li.textContent = `${user} ${user === username.value ? "(You)" : ""}`;
+  const createUsersHtml = () => {
+    allusersHtml.innerHTML = "";
 
-    if (user !== username.value) {
-      const button = document.createElement("button");
-      button.classList.add("call-btn");
-      button.addEventListener("click", () => startCall(user));
-      const img = document.createElement("img");
-      img.src = "/images/phone.png";
-      img.width = 20;
-      button.appendChild(img);
-      li.appendChild(button);
+    for (const user in allusers) {
+      const li = document.createElement("li");
+      li.textContent = `${user} ${user === username.value ? "(You)" : ""}`;
+
+      if (user !== username.value) {
+        const button = document.createElement("button");
+        button.classList.add("call-btn");
+        button.addEventListener("click", (e) => {
+          startCall(user);
+        });
+        const img = document.createElement("img");
+        img.setAttribute("src", "/images/phone.png");
+        img.setAttribute("width", 20);
+
+        button.appendChild(img);
+        li.appendChild(button);
+      }
+
+      allusersHtml.appendChild(li);
     }
-    allusersHtml.appendChild(li);
-  }
+  };
+
+  createUsersHtml();
 });
 
 socket.on("offer", async ({ from, to, offer }) => {
@@ -667,6 +726,7 @@ socket.on("answer", async ({ from, to, answer }) => {
   const pc = PeerConnection.getInstance();
   await pc.setRemoteDescription(answer);
   endCallBtn.style.display = "block";
+  socket.emit("end-call", { from, to });
   caller = [from, to];
 });
 
@@ -675,13 +735,22 @@ socket.on("icecandidate", async (candidate) => {
   await pc.addIceCandidate(new RTCIceCandidate(candidate));
 });
 
-socket.on("call-ended", () => {
+socket.on("end-call", ({ from, to }) => {
+  endCallBtn.style.display = "block";
+});
+
+socket.on("call-ended", (caller) => {
   endCall();
 });
 
-// Start the call
+// Start call method
 const startCall = async (user) => {
-  const pc = PeerConnection.getInstance();
+  let pc = PeerConnection.getInstance();
+  if (pc.signalingState === "closed") {
+    peerConnection = null;
+    pc = PeerConnection.getInstance();
+  }
+
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   socket.emit("offer", {
@@ -690,61 +759,140 @@ const startCall = async (user) => {
     offer: pc.localDescription,
   });
 };
+localVideo.classList.remove("remote-video");
 
-// End the call
+// End call method
 const endCall = () => {
   const pc = PeerConnection.getInstance();
-  PeerConnection.reset();
-  endCallBtn.style.display = "none";
-  remoteVideo.srcObject = null;
-  // Keeping the local video on
-};
-
-// Initialize local video stream
-const startMyVideo = async () => {
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
-    localVideo.srcObject = localStream;
-  } catch (error) {
-    console.error("Error accessing media devices:", error);
+  if (pc) {
+    pc.close();
+    peerConnection = null;
+    endCallBtn.style.display = "none";
+    remoteVideo.srcObject = null;
+    localVideo.classList.add("remote-video");
   }
 };
 
-// Movement control (button and keyboard)
-const triggerMovement = (direction) => {
-  fetch(`/api/move/${direction}`, { method: "POST" })
-    .then((response) => response.json())
-    .then((data) => console.log(`Action: ${direction}`, data))
-    .catch((error) => console.error("Error:", error));
+// Initialize video streaming
+const startMyVideo = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    });
+    localStream = stream;
+    localVideo.srcObject = stream;
+  } catch (error) {
+    console.error("Error accessing media devices:", error);
+    // localVideo.classList.remove("remote-video");
+  }
 };
 
-document
-  .getElementById("btn-front")
-  .addEventListener("mousedown", () => triggerMovement("front"));
-document
-  .getElementById("btn-back")
-  .addEventListener("mousedown", () => triggerMovement("back"));
-document
-  .getElementById("btn-left")
-  .addEventListener("mousedown", () => triggerMovement("left"));
-document
-  .getElementById("btn-right")
-  .addEventListener("mousedown", () => triggerMovement("right"));
+// Toggle video and audio functions
+let videoEnabled = true;
+let audioEnabled = true;
+let vidON = "/images/video-camera.png";
+let videoOFF = "/images/no-video.png";
+toggleVideoBtn.addEventListener("click", () => {
+  videoEnabled = !videoEnabled;
+  localStream.getVideoTracks().forEach((track) => {
+    track.enabled = videoEnabled;
+  });
+  // toggleVideoBtn.innerHTML = videoEnabled
+  //   ? "Turn Off Video"
+  //   : "Turn On Video";
+  toggleVideoBtn.innerHTML = `<img src="${
+    videoEnabled ? vidON : videoOFF
+  }" alt="${videoEnabled ? "Turn Off Video" : "Turn On Video"}">`;
+});
+let micMute = "/images/mute.png";
+let micOn = "/images/record.png";
+toggleAudioBtn.addEventListener("click", () => {
+  audioEnabled = !audioEnabled;
+  localStream.getAudioTracks().forEach((track) => {
+    track.enabled = audioEnabled;
+  });
+  toggleAudioBtn.innerHTML = `<img src="${
+    audioEnabled ? micOn : micMute
+  }" alt="${audioEnabled ? "Mute Audio" : "Unmute Audio"}">`;
+});
 
-document.addEventListener("mouseup", () => triggerMovement("stop"));
+// Movement buttons and keyboard event handlers
+let activeDirection = null;
 
+// Mouse control: Start moving on button press
+document.getElementById("btn-front").addEventListener("mousedown", () => {
+  activeDirection = "front";
+  triggerMovement(activeDirection); // Trigger the movement immediately on hold
+});
+
+document.getElementById("btn-back").addEventListener("mousedown", () => {
+  activeDirection = "back";
+  triggerMovement(activeDirection);
+});
+
+document.getElementById("btn-left").addEventListener("mousedown", () => {
+  activeDirection = "left";
+  triggerMovement(activeDirection);
+});
+
+document.getElementById("btn-right").addEventListener("mousedown", () => {
+  activeDirection = "right";
+  triggerMovement(activeDirection);
+});
+
+// Stop movement on mouse button release
+document.addEventListener("mouseup", () => {
+  if (activeDirection) {
+    triggerMovement("stop"); // Trigger the stop action when the button is released
+    activeDirection = null; // Reset active direction
+  }
+});
+
+// Keyboard event handlers (start moving on key press, stop on key release)
 document.addEventListener("keydown", (event) => {
-  if (event.key === "w") triggerMovement("front");
-  if (event.key === "a") triggerMovement("left");
-  if (event.key === "d") triggerMovement("right");
+  switch (event.key.toLowerCase()) {
+    case "w":
+      if (activeDirection !== "front") {
+        activeDirection = "front";
+        triggerMovement(activeDirection);
+      }
+      break;
+    case "a":
+      if (activeDirection !== "left") {
+        activeDirection = "left";
+        triggerMovement(activeDirection);
+      }
+      break;
+    case "d":
+      if (activeDirection !== "right") {
+        activeDirection = "right";
+        triggerMovement(activeDirection);
+      }
+      break;
+  }
 });
 
 document.addEventListener("keyup", (event) => {
-  if (["w", "a", "d"].includes(event.key)) triggerMovement("stop");
+  if (["w", "a", "d"].includes(event.key.toLowerCase())) {
+    triggerMovement("stop"); // Trigger the stop action on key release
+    activeDirection = null; // Reset active direction
+  }
 });
+
+// Function to handle directions
+function triggerMovement(direction) {
+  fetch(`/api/move/${direction}`, {
+    method: "POST",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(`Action: ${direction}`, data);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}
 
 // Start the video streaming
 startMyVideo();
