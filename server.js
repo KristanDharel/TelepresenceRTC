@@ -263,6 +263,18 @@ app.post("/api/move/:direction", (req, res) => {
       message = "STOP";
       movementData.direction = "stop";
       break;
+    case "headStop":
+      message = "headStop";
+      movementData.direction = "headStop";
+      break;
+    case "UP":
+      message = "UP";
+      movementData.direction = "UP";
+      break;
+    case "DOWN":
+      message = "DOWN";
+      movementData.direction = "DOWN";
+      break;
     default:
       return res.status(400).send({ error: "Invalid direction" });
   }
