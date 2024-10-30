@@ -224,6 +224,7 @@ io.on("connection", (socket) => {
     if (username) {
       delete allusers[username];
       console.log(`${username} has disconnected`);
+
       // Notify other users about the disconnection
       io.emit("user-disconnected", username);
     }

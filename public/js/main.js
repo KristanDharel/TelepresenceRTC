@@ -348,6 +348,16 @@ const PeerConnection = (function () {
       remoteAudio.srcObject = event.streams[0];
       remoteAudio.play();
     };
+    peerConnection.onconnectionstatechange = () => {
+      if (
+        peerConnection.connectionState === "disconnected" ||
+        peerConnection.connectionState === "failed" ||
+        peerConnection.connectionState === "closed"
+      ) {
+        // Stop and clear the remote video
+        remoteVideo.srcObject = null;
+      }
+    };
 
     // Listen for ice candidate
     peerConnection.onicecandidate = function (event) {
@@ -368,13 +378,21 @@ const PeerConnection = (function () {
     },
   };
 })();
-
 // Handle browser events
-createUserBtn.addEventListener("click", (e) => {
-  if (username.value !== "") {
+let userCreated = false;
+// createUserBtn.addEventListener("click", (e) => {
+//   if (username.value !== "") {
+//     const usernameContainer = document.querySelector(".username-input");
+//     socket.emit("join-user", username.value);
+//     usernameContainer.style.display = "none";
+//   }
+// });
+createUserBtn.addEventListener("click", () => {
+  if (username.value.trim()) {
     const usernameContainer = document.querySelector(".username-input");
-    socket.emit("join-user", username.value);
+    socket.emit("join-user", username.value.trim());
     usernameContainer.style.display = "none";
+    userCreated = true; // Set flag to true after user is created
   }
 });
 
@@ -441,7 +459,6 @@ socket.on("end-call", ({ from, to }) => {
 socket.on("call-ended", (caller) => {
   endCall();
 });
-
 // Start call method
 const startCall = async (user) => {
   let pc = PeerConnection.getInstance();
@@ -469,6 +486,7 @@ const endCall = () => {
     endCallBtn.style.display = "none";
     remoteVideo.srcObject = null;
     localVideo.classList.add("remote-video");
+    caller = [];
   }
 };
 
@@ -552,6 +570,7 @@ document.getElementById("btn-down").addEventListener("mousedown", () => {
 document.addEventListener("mouseup", () => {
   if (activeDirection == "UP" || activeDirection == "DOWN") {
     triggerMovement("headStop");
+    activeDirection = null; // Reset active direction
   } else if (
     activeDirection == "front" ||
     activeDirection == "back" ||
@@ -563,7 +582,7 @@ document.addEventListener("mouseup", () => {
   }
 });
 
-// Keyboard event handlers (start mo  ving on key press, stop on key release)
+// Keyboard event handlers (start moving on key press, stop on key release)
 document.addEventListener("keydown", (event) => {
   switch (event.key.toLowerCase()) {
     case "w":
@@ -584,13 +603,13 @@ document.addEventListener("keydown", (event) => {
         triggerMovement(activeDirection);
       }
       break;
-    case "y":
+    case "e":
       if (activeDirection !== "UP") {
         activeDirection = "UP";
         triggerMovement(activeDirection);
       }
       break;
-    case "i":
+    case "r":
       if (activeDirection !== "DOWN") {
         activeDirection = "DOWN";
         triggerMovement(activeDirection);
@@ -606,25 +625,32 @@ document.addEventListener("keyup", (event) => {
   }
 });
 document.addEventListener("keyup", (event) => {
-  if (["y", "i"].includes(event.key.toLowerCase())) {
+  if (["e", "r"].includes(event.key.toLowerCase())) {
     triggerMovement("headStop"); // Trigger the stop action on key release
     activeDirection = null; // Reset active direction
   }
 });
 
 // Function to handle directions
-function triggerMovement(direction) {
-  fetch(`/api/move/${direction}`, {
-    method: "POST",
-  })
+// function triggerMovement(direction) {
+//   fetch(`/api/move/${direction}`, {
+//     method: "POST",
+//   })
+//     .then((response) => response.json())
+//     .then((data) => {
+//       console.log(`Action: ${direction}`, data);
+//     })
+//     .catch((error) => {
+//       console.error("Error:", error);
+//     });
+// }
+const triggerMovement = (direction) => {
+  if (!userCreated) return; // Only proceed if user is created
+  fetch(`/api/move/${direction}`, { method: "POST" })
     .then((response) => response.json())
-    .then((data) => {
-      console.log(`Action: ${direction}`, data);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
-}
+    .then((data) => console.log(`Action: ${direction}`, data))
+    .catch((error) => console.error("Error:", error));
+};
 
 // Start the video streaming
 startMyVideo();
