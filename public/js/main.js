@@ -16,6 +16,7 @@ const PeerConnection = (function () {
 
   const createPeerConnection = () => {
     const config = {
+      // ide server credentia;s
       iceServers: [
         {
           urls: "stun:stun.relay.metered.ca:80",
@@ -88,13 +89,6 @@ const PeerConnection = (function () {
 })();
 // Handle browser events
 let userCreated = false;
-// createUserBtn.addEventListener("click", (e) => {
-//   if (username.value !== "") {
-//     const usernameContainer = document.querySelector(".username-input");
-//     socket.emit("join-user", username.value);
-//     usernameContainer.style.display = "none";
-//   }
-// });
 createUserBtn.addEventListener("click", () => {
   if (username.value.trim()) {
     const usernameContainer = document.querySelector(".username-input");
@@ -209,7 +203,7 @@ const startMyVideo = async () => {
     localVideo.srcObject = stream;
   } catch (error) {
     console.error("Error accessing media devices:", error);
-    // localVideo.classList.remove("remote-video");
+ 
   }
 };
 
@@ -223,9 +217,7 @@ toggleVideoBtn.addEventListener("click", () => {
   localStream.getVideoTracks().forEach((track) => {
     track.enabled = videoEnabled;
   });
-  // toggleVideoBtn.innerHTML = videoEnabled
-  //   ? "Turn Off Video"
-  //   : "Turn On Video";
+
   toggleVideoBtn.innerHTML = `<img src="${
     videoEnabled ? vidON : videoOFF
   }" alt="${videoEnabled ? "Turn Off Video" : "Turn On Video"}">`;
@@ -339,19 +331,7 @@ document.addEventListener("keyup", (event) => {
   }
 });
 
-// Function to handle directions
-// function triggerMovement(direction) {
-//   fetch(`/api/move/${direction}`, {
-//     method: "POST",
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log(`Action: ${direction}`, data);
-//     })
-//     .catch((error) => {
-//       console.error("Error:", error);
-//     });
-// }
+
 const triggerMovement = (direction) => {
   if (!userCreated) return; // Only proceed if user is created
   fetch(`/api/move/${direction}`, { method: "POST" })
